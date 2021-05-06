@@ -23,17 +23,32 @@ window.addEventListener('DOMContentLoaded', async function() {
     // - Ignore the default behavior of the button
     event.preventDefault()
 
-    // - Get a reference to the element containing the user-entered location
+    // - Get a reference to the elements containing the user-entered location and days
     let locationInput = document.querySelector(`#location`)
+    let daysInput = document.querySelector(`#days`)
 
-    // - Get the user-entered location from the element's value
+    // - Get the user-entered location and days from the element's value
     let location = locationInput.value
+    let days = daysInput.value
+
+    // default to 3 days if user enters no days, default to three day if user enters more than three days (free version of API)
+    if (days.length < 1){
+      days = 3
+    }
+    else if (days < 1) {
+      days = 3
+    } else if (days > 3) {
+      days = 3
+    }
+    // console.log(days)
 
     // - Check to see if the user entered anything; if so:
     if (location.length > 0) { 
 
       // - Construct a URL to call the WeatherAPI.com API
-      let url = `https://api.weatherapi.com/v1/forecast.json?key=79bee9cec94646bea2111705213004&q=${location}&days=3`
+      let url = `https://api.weatherapi.com/v1/forecast.json?key=79bee9cec94646bea2111705213004&q=${location}&days=${days}`
+      
+      // console.log(url)
 
       // - Fetch the url, wait for a response, store the response in memory
       let response = await fetch(url)
@@ -49,8 +64,6 @@ window.addEventListener('DOMContentLoaded', async function() {
       let currentResult = json.current
       let forecastResult = json.forecast 
 
-      // - Continue the recipe yourself!
-
       // reference current element
       let currentElement = document.querySelector(`.current`)
 
@@ -59,14 +72,37 @@ window.addEventListener('DOMContentLoaded', async function() {
         <div class="text-center space-y-2">
           <div class="font-bold text-3xl">Current Weather for ${locationResult.name}, ${locationResult.region}</div>
           <div class="font-bold">
-            <img src="https://cdn.weatherapi.com/weather/64x64/day/116.png" class="inline-block">
-            <span class="temperature">60</span>° 
+            <img src="https:${currentResult.condition.icon}" class="inline-block">
+            <span class="temperature">${currentResult.temp_f}</span>° 
             and
-            <span class="conditions">Partly Cloudy</span>
+            <span class="conditions">${currentResult.condition.text}</span>
           </div>
         </div>
       </div>
       `
-    }
+       // reference forecast element
+       let forecastElement = document.querySelector(`.forecast`)
+
+       forecastElement.innerHTML = (`<div class="text-center space-y-8">
+       <div class="font-bold text-3xl">${days} Day Forecast</div>
+       `)
+      
+      for (let i=0; i < days; i++) {
+        let dayForecast = forecastResult.forecastday[i]
+        
+
+        //replace current element's contents
+        forecastElement.innerHTML +=
+        ( ` <div class="text-center space-y-8">
+            <img src="https:${dayForecast.day.condition.icon}" class="mx-auto">
+            <h1 class="text-2xl text-bold text-gray-500">${dayForecast.date}</h1>
+            <h2 class="text-xl">High ${dayForecast.day.maxtemp_f}° – Low ${dayForecast.day.mintemp_f}°</h2>
+            <p class="text-gray-500">${dayForecast.day.condition.text}</h1>
+          </div>
+        </div>
+        `
+        )
+      }
+    } 
     })
 })
